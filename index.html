@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CBT ATS BIOLOGI — SMAN 1 JAWILAN</title>
+    
+    <!-- Pustaka jsPDF & AutoTable untuk Cetak PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    <style>
+        :root {
+            --primary: #0f3875;
+            --primary-hover: #0a2550;
+            --accent: #f59e0b;
+            --accent-hover: #d97706;
+            --secondary: #475569;
+            --secondary-hover: #334155;
+            --danger: #dc2626;
+            --success: #16a34a;
+            --warning: #eab308;
+            --bg-main: #f0f4f9;
+            --card-bg: #ffffff;
+            --text-main: #0f172a;
+            --text-muted: #64748b;
+            --border-color: #cbd5e1;
+            --shadow-sm: 0 1px 3px rgba(15, 56, 117, 0.08);
+            --shadow-md: 0 4px 12px rgba(15, 56, 117, 0.12);
+            --shadow-lg: 0 10px 25px rgba(15, 56, 117, 0.18);
+            --radius: 10px;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-main); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
+
+        #app { max-width: 1000px; margin: 0 auto; padding: 20px; width: 100%; flex: 1; }
+
+        .guru-bar {
+            display: flex;
+            justify-content: flex-end;
+            padding: 12px 24px;
+            background: var(--primary);
+            border-bottom: 3px solid var(--accent);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-guru {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 700;
+            transition: all 0.2s;
+        }
+        .btn-guru:hover { background: var(--accent-hover); color: #fff; }
+
+        .school-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .school-logo {
+            width: 55px;
+            height: 55px;
+            object-fit: contain;
+            filter: drop-shadow(0px 2px 4px rgba(0, 0, 0, 0.2));
+        }
+
+        .screen { display: none; animation: fadeIn 0.3s ease-in-out; }
+        .screen.active { display: block; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            border: 1px solid var(--border-color);
+            padding: 28px;
+            box-shadow: var(--shadow-md);
+            margin-bottom: 20px;
+        }
+
+        .start-card {
+            max-width: 480px;
+            margin: 30px auto;
+            text-align: center;
+            border-top: 5px solid var(--primary);
+        }
+
+        h1 { font-size: 22px; font-weight: 700; color: var(--primary); margin-bottom: 4px; }
+        h2 { font-size: 18px; font-weight: 600; color: var(--text-main); }
+        .subtitle { color: var(--text-muted); font-size: 13px; margin-bottom: 20px; }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 6px rgba(15, 56, 117, 0.25);
+        }
+        .btn-primary:hover { background-color: var(--primary-hover); transform: translateY(-1px); }
+
+        .btn-secondary {
+            background-color: #e2e8f0;
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .btn-secondary:hover { background-color: #cbd5e1; }
+
+        .btn-danger {
+            background-color: var(--danger);
+            color: white;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-edit {
+            background-color: var(--warning);
+            color: #000;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .btn-print {
+            background-color: var(--success);
+            color: white;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-print:hover { background-color: #15803d; }
+
+        input[type="text"], input[type="email"], input[type="password"], textarea, select {
+            width: 100%;
+            padding: 11px 14px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            font-size: 14px;
+            color: var(--text-main);
+            background-color: #ffffff;
+            outline: none;
+            margin-top: 4px;
+        }
+        input:focus, textarea:focus, select:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(15, 56, 117, 0.15); }
+
+        .exam-topbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--primary);
+            color: white;
+            padding: 16px 24px;
+            border-radius: var(--radius);
+            margin-bottom: 20px;
+            border-bottom: 3px solid var(--accent);
+        }
+
+        .exam-timer {
+            font-size: 16px;
+            font-weight: 700;
+            color: #ffffff;
+            background: var(--danger);
+            padding: 6px 16px;
+            border-radius: 20px;
+        }
+
+        .exam-body { display: grid; grid-template-columns: 1fr 260px; gap: 20px; }
+        @media (max-width: 768px) { .exam-body { grid-template-columns: 1fr; } }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .option-item:hover { background-color: #f1f5f9; }
+
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            overflow-y: auto;
+            padding: 20px;
+        }
+        .modal-box { background: white; padding: 25px; border-radius: var(--radius); max-width: 550px; width: 100%; box-shadow: var(--shadow-lg); }
+
+        .table-responsive { width: 100%; overflow-x: auto; margin-top: 15px; border-radius: 8px; border: 1px solid var(--border-color); }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; text-align: left; }
+        th { background-color: var(--primary); color: white; padding: 12px 14px; font-weight: 600; }
+        td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); }
+        tr:nth-child(even) { background-color: #f8fafc; }
+
+        .badge-danger { background: var(--danger); color: white; padding: 3px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; }
+        .badge-success { background: var(--success); color: white; padding: 3px 8px; border-radius: 4px; font-weight: bold; font-size: 11px; }
+
+        .tab-menu { display: flex; gap: 10px; margin-bottom: 20px; border-bottom: 2px solid var(--border-color); }
+        .tab-btn { padding: 10px 16px; border: none; background: none; font-weight: bold; cursor: pointer; color: var(--text-muted); border-bottom: 3px solid transparent; }
+        .tab-btn.active { color: var(--primary); border-bottom-color: var(--primary); }
+
+        .filter-box {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            background: #f1f5f9;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="guru-bar">
+    <button class="btn-guru" id="btnOpenGuruPanel">⚙️ Panel Guru (Firebase)</button>
+</div>
+
+<div id="app">
+
+    <!-- 1. START SCREEN -->
+    <section id="screen-start" class="screen active">
+        <div class="card start-card">
+            <div class="school-header" style="justify-content: center;">
+                <img src="logo.png" alt="Logo SMAN 1 Jawilan" class="school-logo" onerror="this.src='https://via.placeholder.com/55?text=SMAN1';">
+                <div style="text-align: left;">
+                    <h1>CBT ATS BIOLOGI</h1>
+                    <p class="subtitle" style="margin-bottom:0;">SMA Negeri 1 Jawilan</p>
+                </div>
+            </div>
+
+            <div style="margin-bottom: 12px; text-align: left;">
+                <label style="font-size: 13px; font-weight: bold;">Nama Peserta:</label>
+                <input id="playerName" type="text" placeholder="Masukkan nama lengkap" maxlength="100">
+            </div>
+
+            <div style="margin-bottom: 20px; text-align: left;">
+                <label style="font-size: 13px; font-weight: bold;">Kelas:</label>
+                <select id="playerClass">
+                    <option value="XII-4">XII-4</option>
+                    <option value="XII-6">XII-6</option>
+                    <option value="XII-7">XII-7</option>
+                    <option value="XII-8">XII-8</option>
+                    <option value="XII-9">XII-9</option>
+                    <option value="XII-10">XII-10</option>
+                    <option value="XII-11">XII-11</option>
+                </select>
+            </div>
+
+            <button class="btn-primary" id="btnStart">🚀 Masuk Ujian</button>
+        </div>
+    </section>
+
+    <!-- 2. EXAM SCREEN -->
+    <section id="screen-exam" class="screen">
+        <div class="exam-topbar">
+            <div>
+                <b style="font-size: 16px;">ASESMEN TENGAH SEMESTER BIOLOGI</b>
+                <div id="examPlayerTag" style="font-size: 12px; opacity: 0.9;"></div>
+            </div>
+            <div class="exam-timer" id="examTimer">⏱ 90:00</div>
+        </div>
+
+        <div class="exam-body">
+            <div class="exam-main">
+                <div class="card question-card">
+                    <div class="q-number" id="qNumber" style="color:var(--primary); font-weight:bold; margin-bottom:10px;">Soal 1</div>
+                    <h3 id="qPrompt" style="font-size: 16px; margin-bottom: 15px; font-weight: 500; line-height: 1.5;"></h3>
+                    <div id="answerArea" style="display:flex; flex-direction:column; gap:10px;"></div>
+                </div>
+                
+                <div style="display:flex; justify-content:space-between; margin-top:15px;">
+                    <button class="btn-secondary" id="btnPrev">⬅ Sebelumnya</button>
+                    <button class="btn-secondary" id="btnNextQ">Berikutnya ➡</button>
+                </div>
+            </div>
+
+            <div class="exam-sidebar">
+                <div class="card">
+                    <h3 style="font-size: 14px; margin-bottom: 10px;">Navigasi Soal</h3>
+                    <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Pastikan semua soal terjawab sebelum menyelesaikan ujian.</p>
+                    <button class="btn-primary" id="btnFinishExam" style="background-color: var(--success);">✅ Selesai Ujian</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 3. GURU LOGIN MODAL -->
+    <div id="modalGuruLogin" class="modal-overlay">
+        <div class="modal-box">
+            <h3 style="color: var(--primary); margin-bottom: 8px;">🔐 Login Guru (Firebase Auth)</h3>
+            <p style="font-size: 12px; color: #666; margin-bottom: 12px;">Masukkan email & password guru yang terdaftar di Firebase Console</p>
+            <input type="email" id="guruEmail" placeholder="Email Guru">
+            <input type="password" id="guruPassword" placeholder="Password Guru" style="margin-top:8px; margin-bottom:15px;">
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-secondary" id="btnCloseGuruLogin" style="flex: 1;">Batal</button>
+                <button class="btn-primary" id="btnLoginGuru" style="flex: 1;">Login</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 4. DASHBOARD GURU COMPLETE -->
+    <section id="screen-guru-dashboard" class="screen">
+        <div class="card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <h2>⚙️ Panel Kontrol Guru & Pengawasan</h2>
+                <button class="btn-secondary" id="btnLogoutGuru">Logout Guru</button>
+            </div>
+
+            <div class="tab-menu">
+                <button class="tab-btn active" onclick="switchGuruTab('tab-soal', event)">📝 Kelola Bank Soal</button>
+                <button class="tab-btn" onclick="switchGuruTab('tab-rekap', event)">📊 Rekap Nilai & Pelanggaran</button>
+            </div>
+            
+            <!-- TAB 1: KELOLA SOAL -->
+            <div id="tab-soal" class="guru-tab-content">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3>Daftar Soal Biologi (`cbt_questions`)</h3>
+                    <button class="btn-primary" id="btnOpenAddQuestion" style="width: auto; padding: 8px 16px;">➕ Tambah Soal Baru</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">No</th>
+                                <th>Pertanyaan</th>
+                                <th style="width: 80px;">Kunci</th>
+                                <th style="width: 130px;">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyQuestions">
+                            <tr><td colspan="4" style="text-align: center;">Memuat soal dari Firestore...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- TAB 2: REKAP NILAI & CETAK PDF -->
+            <div id="tab-rekap" class="guru-tab-content" style="display: none;">
+                
+                <!-- Filter Kelas & Tombol Cetak PDF -->
+                <div class="filter-box">
+                    <label style="font-weight: bold; font-size: 13px; white-space: nowrap;">Pilih Kelas:</label>
+                    <select id="filterClassSelect" style="margin-top:0; max-width: 180px;">
+                        <option value="ALL">Semua Kelas</option>
+                        <option value="XII-4">XII-4</option>
+                        <option value="XII-6">XII-6</option>
+                        <option value="XII-7">XII-7</option>
+                        <option value="XII-8">XII-8</option>
+                        <option value="XII-9">XII-9</option>
+                        <option value="XII-10">XII-10</option>
+                        <option value="XII-11">XII-11</option>
+                    </select>
+                    <button class="btn-print" id="btnPrintPdf">📄 Cetak Rekap PDF</button>
+                </div>
+
+                <div class="table-responsive">
+                    <h3 style="padding: 10px 0; color: var(--primary);">Hasil Akhir Siswa (`cbt_results`)</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Waktu</th>
+                                <th>Nama</th>
+                                <th>Kelas</th>
+                                <th>Skor</th>
+                                <th>Status</th>
+                                <th>Pelanggaran</th>
+                                <th>Log Detail</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyResults">
+                            <tr><td colspan="7" style="text-align: center;">Memuat data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="table-responsive" style="margin-top: 25px;">
+                    <h3 style="padding: 10px 0; color: var(--danger);">Seketika Log Pelanggaran (`cbt_violations`)</h3>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Waktu</th>
+                                <th>Nama</th>
+                                <th>Kelas</th>
+                                <th>Alasan Pelanggaran</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tbodyViolations">
+                            <tr><td colspan="4" style="text-align: center;">Memuat data...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <br>
+            <button class="btn-primary" id="btnBackFromGuru">Kembali ke Menu Utama</button>
+        </div>
+    </section>
+
+    <!-- MODAL EDIT / TAMBAH SOAL (5 OPSI A-E) -->
+    <div id="modalQuestionForm" class="modal-overlay">
+        <div class="modal-box">
+            <h3 id="modalQuestionTitle" style="color: var(--primary); margin-bottom: 12px;">Tambah Soal Ujian</h3>
+            <input type="hidden" id="editQuestionDocId">
+
+            <div style="margin-bottom: 10px;">
+                <label style="font-size: 12px; font-weight: bold;">Pertanyaan / Soal:</label>
+                <textarea id="qInputText" rows="3" placeholder="Tuliskan pertanyaan soal..."></textarea>
+            </div>
+
+            <div style="margin-bottom: 8px;">
+                <label style="font-size: 12px; font-weight: bold;">Pilihan A:</label>
+                <input type="text" id="qInputOptA" placeholder="Jawaban A">
+            </div>
+            <div style="margin-bottom: 8px;">
+                <label style="font-size: 12px; font-weight: bold;">Pilihan B:</label>
+                <input type="text" id="qInputOptB" placeholder="Jawaban B">
+            </div>
+            <div style="margin-bottom: 8px;">
+                <label style="font-size: 12px; font-weight: bold;">Pilihan C:</label>
+                <input type="text" id="qInputOptC" placeholder="Jawaban C">
+            </div>
+            <div style="margin-bottom: 8px;">
+                <label style="font-size: 12px; font-weight: bold;">Pilihan D:</label>
+                <input type="text" id="qInputOptD" placeholder="Jawaban D">
+            </div>
+            <div style="margin-bottom: 12px;">
+                <label style="font-size: 12px; font-weight: bold;">Pilihan E:</label>
+                <input type="text" id="qInputOptE" placeholder="Jawaban E">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="font-size: 12px; font-weight: bold;">Kunci Jawaban Benar:</label>
+                <select id="qInputCorrectAnswer">
+                    <option value="0">A</option>
+                    <option value="1">B</option>
+                    <option value="2">C</option>
+                    <option value="3">D</option>
+                    <option value="4">E</option>
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+                <button class="btn-secondary" id="btnCloseQuestionModal" style="flex: 1;">Batal</button>
+                <button class="btn-primary" id="btnSaveQuestion" style="flex: 1;">Simpan Soal</button>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- INTEGRASI FIREBASE SDK (JS MODULAR v10) -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+  import { 
+    getFirestore, collection, addDoc, doc, updateDoc, deleteDoc, serverTimestamp, onSnapshot, query, orderBy, getDocs 
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+  import { 
+    getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged 
+  } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyD4u8Y8V5_h63nq2hO6DSDi8PxLM83xFZk",
+    authDomain: "cbt-ats-biologi-kelas-xii.firebaseapp.com",
+    projectId: "cbt-ats-biologi-kelas-xii",
+    storageBucket: "cbt-ats-biologi-kelas-xii.firebasestorage.app",
+    messagingSenderId: "327951681689",
+    appId: "1:327951681689:web:d67d68e92da73a82b49008",
+    measurementId: "G-0NYL6Z7KSW"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth(app);
+
+  // DATA DEFAULT SOAL METABOLISME SEL (30 SOAL)
+  const defaultQuestionsData = [
+    {
+      question: "Komponen penyusun enzim yang terdiri atas senyawa protein dinamakan ...",
+      options: ["Koenzim", "Kofaktor", "Apoenzim", "Holoenzim", "Gugus prostetik"],
+      answer: 2
+    },
+    {
+      question: "Enzim bekerja secara spesifik. Hal ini berarti bahwa enzim ...",
+      options: ["Dapat bereaksi dengan segala jenis substrat", "Hanya dapat bekerja pada pH tinggi", "Hanya dapat bekerja pada substrat tertentu", "Bekerja dua arah pada substrat yang sama", "Membutuhkan energi tinggi untuk bereaksi"],
+      answer: 2
+    },
+    {
+      question: "Salah satu sifat enzim sebagai biokatalisator adalah ...",
+      options: ["Mengubah kesetimbangan reaksi", "Menurunkan energi aktivasi reaksi", "Ikut bereaksi dan habis menjadi produk", "Meningkatkan energi aktivasi reaksi", "Bekerja maksimal pada suhu sangat tinggi"],
+      answer: 1
+    },
+    {
+      question: "Teori \"Lock and Key\" mengenai mekanisme kerja enzim menyatakan bahwa ...",
+      options: ["Sisi aktif enzim bersifat fleksibel dan menyesuaikan bentuk substrat", "Sisi aktif enzim memiliki bentuk spesifik yang pas dengan substrat", "Substrat berubah bentuk agar sesuai dengan sisi aktif enzim", "Enzim dapat berikatan dengan beberapa substrat sekaligus", "Inhibitor bersaing dengan substrat untuk mengubah bentuk enzim"],
+      answer: 1
+    },
+    {
+      question: "Inhibitor kompetitif menghambat kerja enzim dengan cara ...",
+      options: ["Mengubah bentuk sisi aktif enzim secara permanen", "Berikatan pada sisi alosterik enzim", "Memotong ikatan peptida pada molekul enzim", "Bersaing dengan substrat untuk berikatan pada sisi aktif", "Merusak struktur tersier protein enzim"],
+      answer: 3
+    },
+    {
+      question: "Perhatikan tahapan respirasi aerob berikut:\n1) Transpor Elektron\n2) Glikolisis\n3) Dekarboksilasi Oksidatif\n4) Siklus Krebs\nUrutan tahapan respirasi aerob yang benar adalah ...",
+      options: ["1 – 2 – 3 – 4", "2 – 3 – 4 – 1", "2 – 1 – 3 – 4", "3 – 2 – 4 – 1", "2 – 4 – 3 – 1"],
+      answer: 1
+    },
+    {
+      question: "Tahap glikolisis berlangsung di dalam ... dan menghasilkan ...",
+      options: ["Mitokondria ; 2 Asam Piruvat, 2 ATP, 2 NADH", "Sitosol ; 2 Asam Piruvat, 2 ATP, 2 NADH", "Matriks mitokondria ; 2 Asetil Ko-A, 2 CO₂, 2 NADH", "Krista mitokondria ; 34 ATP dan H₂O", "Sitosol ; 2 Asetil Ko-A, 2 ATP, 2 FADH₂"],
+      answer: 1
+    },
+    {
+      question: "Sebelum memasuki Siklus Krebs, asam piruvat diubah terlebih dahulu menjadi Asetil Ko-A melalui proses ...",
+      options: ["Glikolisis", "Fermentasi", "Dekarboksilasi Oksidatif", "Fotofosforilasi", "Transpor Elektron"],
+      answer: 2
+    },
+    {
+      question: "Senyawa yang pertama kali terbentuk ketika Asetil Ko-A memasuki Siklus Krebs adalah ...",
+      options: ["Asam oksaloasetat", "Asam sitrat", "Asam ketoglutarat", "Asam malat", "Asam fumarat"],
+      answer: 1
+    },
+    {
+      question: "Pada tahapan sistem transpor elektron, satu molekul NADH akan menghasilkan ATP sebanyak ...",
+      options: ["1 ATP", "2 ATP", "3 ATP", "4 ATP", "36 ATP"],
+      answer: 2
+    },
+    {
+      question: "Akseptor elektron terakhir dalam sistem transpor elektron pada respirasi aerob adalah ...",
+      options: ["NAD⁺", "FAD⁺", "CO₂", "O₂", "H₂O"],
+      answer: 3
+    },
+    {
+      question: "Jumlah total ATP bersih yang dihasilkan dari respirasi aerob satu molekul glukosa pada sel eukariotik secara umum adalah ...",
+      options: ["2 ATP", "24 ATP", "30 ATP", "36 atau 38 ATP", "42 ATP"],
+      answer: 3
+    },
+    {
+      question: "Fermentasi asam laktat berbeda dari fermentasi alkohol karena pada fermentasi asam laktat ...",
+      options: ["Dihasilkan karbondioksida", "Tidak dihasilkan CO₂", "Menghasilkan ATP lebih banyak", "Membutuhkan oksigen bebas", "Menggunakan bakteri pemakan gula"],
+      answer: 1
+    },
+    {
+      question: "Pada fermentasi alkohol oleh Saccharomyces, senyawa yang bertindak sebagai akseptor elektron terakhir adalah ...",
+      options: ["Asam piruvat", "Asetaldehid", "Etanol", "Oksigen", "NAD⁺"],
+      answer: 1
+    },
+    {
+      question: "Rasa pegal pada otot setelah berolahraga berat disebabkan oleh penumpukan ...",
+      options: ["Asam piruvat hasil glikolisis", "Asam sitrat dari siklus Krebs", "Asam laktat akibat respirasi anaerob", "Alkohol hasil fermentasi", "Karbondioksida dalam jaringan otot"],
+      answer: 2
+    },
+    {
+      question: "Proses fotosintesis pada tumbuhan terjadi di dalam organel ...",
+      options: ["Mitokondria", "Ribosom", "Kloroplas", "Lisosom", "Badan Golgi"],
+      answer: 2
+    },
+    {
+      question: "Reaksi terang fotosintesis terjadi di bagian kloroplas yang disebut ...",
+      options: ["Stroma", "Matriks", "Grana / Membran Tilakoid", "Membran luar", "Sitosol"],
+      answer: 2
+    },
+    {
+      question: "Pada reaksi terang fotosintesis, fotolisis air bertujuan untuk ...",
+      options: ["Mengikat karbondioksida", "Memecah glukosa menjadi asam piruvat", "Menyediakan elektron untuk menggantikan elektron pada klorofil", "Menghasilkan glukosa langsung", "Membentuk CO₂ untuk reaksi gelap"],
+      answer: 2
+    },
+    {
+      question: "Produk dari reaksi terang yang digunakan dalam reaksi gelap (Siklus Calvin) adalah ...",
+      options: ["O₂ dan ATP", "ATP dan NADPH", "CO₂ dan H₂O", "NADPH dan O₂", "Glukosa dan ATP"],
+      answer: 1
+    },
+    {
+      question: "Senyawa pengikat CO₂ (fiksasi karbon) pada reaksi gelap fotosintesis tumbuhan C3 adalah ...",
+      options: ["RuBP (Ribulosa Bifosfat)", "PEP (Posfoenolpiruvat)", "PGA (Asam Fosfogliserat)", "PGAL (Fosfogliseraldehid)", "Oksaloasetat"],
+      answer: 0
+    },
+    {
+      question: "Enzim yang berperan utama dalam fiksasi CO₂ pada Siklus Calvin adalah ...",
+      options: ["Amilase", "RuBisCO", "ATP Sintase", "Dekarboksilase", "Katalase"],
+      answer: 1
+    },
+    {
+      question: "Jalur fotofosforilasi siklik pada reaksi terang fotosintesis hanya menghasilkan molekul ...",
+      options: ["NADPH", "ATP", "O₂", "Glukosa", "Asam piruvat"],
+      answer: 1
+    },
+    {
+      question: "Oksigen (O₂) yang dilepaskan pada proses fotosintesis berasal dari pemecahan molekul ...",
+      options: ["Karbondioksida (CO₂)", "Glukosa (C₆H₁₂O₆)", "Air (H₂O)", "Ribulosa bifosfat (RuBP)", "NADPH"],
+      answer: 2
+    },
+    {
+      question: "Perbedaan utama antara fotosintesis dan kemosintesis terletak pada ...",
+      options: ["Hasil akhir senyawa organik", "Sumber energi yang digunakan", "Kebutuhan akan bahan dasar karbon", "Organel tempat berlangsungnya", "Jenis reaksi oksidasi-reduksi"],
+      answer: 1
+    },
+    {
+      question: "Contoh organisme yang mampu melakukan kemosintesis adalah ...",
+      options: ["Alga hijau", "Tumbuhan paku", "Bakteri Nitrosomonas", "Jamur Penicillium", "Amoeba"],
+      answer: 2
+    },
+    {
+      question: "Faktor lingkungan yang tidak mempengaruhi laju kerja enzim adalah ...",
+      options: ["Suhu", "pH", "Konsentrasi substrat", "Intensitas cahaya", "Adanya inhibitor"],
+      answer: 3
+    },
+    {
+      question: "Enzim katalase bertugas menguraikan hidrogen peroksida (H₂O₂) menjadi ...",
+      options: ["Air (H₂O) dan Oksigen (O₂)", "Karbondioksida (CO₂) dan Air (H₂O)", "Karbondioksida (CO₂) dan Oksigen (O₂)", "Nitrogen (N₂) dan Air (H₂O)", "Asam laktat dan Gas Hidrogen"],
+      answer: 0
+    },
+    {
+      question: "Hubungan antara kemosintesis bakteri Nitrosococcus dengan pembentukan senyawa nitrogen adalah mengoksidasi ...",
+      options: ["Nitrit menjadi Nitrat", "Amonia menjadi Nitrit", "Nitrat menjadi Gas Nitrogen", "Gas Nitrogen menjadi Amonia", "Nitrat menjadi Amonia"],
+      answer: 1
+    },
+    {
+      question: "Apabila dalam Siklus Calvin terdapat 6 molekul CO₂ yang difiksasi, maka jumlah molekul glukosa (C₆H₁₂O₆) yang dapat dihasilkan adalah ...",
+      options: ["1 molekul", "2 molekul", "3 molekul", "6 molekul", "12 molekul"],
+      answer: 0
+    },
+    {
+      question: "Pernyataan berikut yang benar mengenai hubungan antara anabolisme dan katabolisme adalah ...",
+      options: ["Katabolisme membutuhkan energi, sedangkan anabolisme menghasilkan energi", "Katabolisme menyusun molekul kompleks, sedangkan anabolisme memecah molekul kompleks", "Anabolisme merupakan reaksi eksergonik, sedangkan katabolisme merupakan reaksi endergonik", "Katabolisme memecah molekul kompleks menjadi sederhana, sedangkan anabolisme menyusun molekul sederhana menjadi kompleks", "Keduanya selalu memerlukan cahaya matahari secara langsung"],
+      answer: 3
+    }
+  ];
+
+  let bankSoalBiologi = [];
+  let rawResults = [];
+  let currentQuestionIndex = 0;
+  let userAnswers = {};
+
+  window.CBT_SESSION = {
+    sessionId: "SESS-" + Date.now(),
+    studentName: "",
+    studentClass: "XII-4",
+    violationsCount: 0,
+    violationLogs: [],
+    isDisqualified: false,
+    isExamActive: false
+  };
+
+  window.switchGuruTab = function(tabId, evt) {
+    document.querySelectorAll(".guru-tab-content").forEach(el => el.style.display = "none");
+    document.querySelectorAll(".tab-btn").forEach(el => el.classList.remove("active"));
+    
+    document.getElementById(tabId).style.display = "block";
+    if (evt && evt.target) evt.target.classList.add("active");
+  };
+
+  // 1. KELOLA SOAL (A-E)
+  function loadQuestionsForGuru() {
+    const qQuery = query(collection(db, "cbt_questions"), orderBy("createdAt", "asc"));
+    onSnapshot(qQuery, (snapshot) => {
+      const tbody = document.getElementById("tbodyQuestions");
+      tbody.innerHTML = "";
+      bankSoalBiologi = [];
+
+      if (snapshot.empty) {
+        tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;">Belum ada soal di Firestore. Menggunakan bank soal bawaan.</td></tr>`;
+        bankSoalBiologi = defaultQuestionsData.map((q, idx) => ({ id: "default_" + idx, ...q }));
+        renderGuruTableFromMemory();
+        return;
+      }
+
+      let no = 1;
+      snapshot.forEach((docSnap) => {
+        const data = docSnap.data();
+        const id = docSnap.id;
+        
+        bankSoalBiologi.push({ id, ...data });
+
+        const keyLetters = ["A", "B", "C", "D", "E"];
+        tbody.innerHTML += `
+          <tr>
+            <td><b>${no++}</b></td>
+            <td>${data.question}</td>
+            <td><b style="color:var(--success);">${keyLetters[data.answer]}</b></td>
+            <td>
+              <button class="btn-edit" onclick="window.openEditQuestionModal('${id}')">✏️ Edit</button>
+              <button class="btn-danger" onclick="window.deleteQuestion('${id}')">🗑️ Hapus</button>
+            </td>
+          </tr>
+        `;
+      });
+    });
+  }
+
+  function renderGuruTableFromMemory() {
+    const tbody = document.getElementById("tbodyQuestions");
+    tbody.innerHTML = "";
+    const keyLetters = ["A", "B", "C", "D", "E"];
+    bankSoalBiologi.forEach((data, index) => {
+      tbody.innerHTML += `
+        <tr>
+          <td><b>${index + 1}</b></td>
+          <td>${data.question}</td>
+          <td><b style="color:var(--success);">${keyLetters[data.answer]}</b></td>
+          <td>
+            <button class="btn-edit" onclick="window.openEditQuestionModal('${data.id}')">✏️ Edit</button>
+            <button class="btn-danger" onclick="window.deleteQuestion('${data.id}')">🗑️ Hapus</button>
+          </td>
+        </tr>
+      `;
+    });
+  }
+
+  document.getElementById("btnOpenAddQuestion").onclick = () => {
+    document.getElementById("editQuestionDocId").value = "";
+    document.getElementById("modalQuestionTitle").innerText = "➕ Tambah Soal Baru";
+    document.getElementById("qInputText").value = "";
+    document.getElementById("qInputOptA").value = "";
+    document.getElementById("qInputOptB").value = "";
+    document.getElementById("qInputOptC").value = "";
+    document.getElementById("qInputOptD").value = "";
+    document.getElementById("qInputOptE").value = "";
+    document.getElementById("qInputCorrectAnswer").value = "0";
+    document.getElementById("modalQuestionForm").style.display = "flex";
+  };
+
+  window.openEditQuestionModal = function(docId) {
+    const q = bankSoalBiologi.find(item => item.id === docId);
+    if (!q) return;
+
+    document.getElementById("editQuestionDocId").value = docId;
+    document.getElementById("modalQuestionTitle").innerText = "✏️ Edit Soal Ujian";
+    document.getElementById("qInputText").value = q.question;
+    document.getElementById("qInputOptA").value = q.options[0] || "";
+    document.getElementById("qInputOptB").value = q.options[1] || "";
+    document.getElementById("qInputOptC").value = q.options[2] || "";
+    document.getElementById("qInputOptD").value = q.options[3] || "";
+    document.getElementById("qInputOptE").value = q.options[4] || "";
+    document.getElementById("qInputCorrectAnswer").value = q.answer;
+    document.getElementById("modalQuestionForm").style.display = "flex";
+  };
+
+  document.getElementById("btnCloseQuestionModal").onclick = () => {
+    document.getElementById("modalQuestionForm").style.display = "none";
+  };
+
+  document.getElementById("btnSaveQuestion").onclick = async () => {
+    const docId = document.getElementById("editQuestionDocId").value;
+    const questionText = document.getElementById("qInputText").value.trim();
+    const optA = document.getElementById("qInputOptA").value.trim();
+    const optB = document.getElementById("qInputOptB").value.trim();
+    const optC = document.getElementById("qInputOptC").value.trim();
+    const optD = document.getElementById("qInputOptD").value.trim();
+    const optE = document.getElementById("qInputOptE").value.trim();
+    const correctAnswer = parseInt(document.getElementById("qInputCorrectAnswer").value);
+
+    if (!questionText || !optA || !optB || !optC || !optD || !optE) {
+      alert("Harap lengkapi semua bidang pertanyaan dan kelima pilihan jawaban (A, B, C, D, E)!");
+      return;
+    }
+
+    const payload = {
+      question: questionText,
+      options: [optA, optB, optC, optD, optE],
+      answer: correctAnswer,
+      updatedAt: serverTimestamp()
+    };
+
+    try {
+      if (docId && !docId.startsWith("default_")) {
+        await updateDoc(doc(db, "cbt_questions", docId), payload);
+        alert("✓ Soal berhasil diperbarui di Firestore!");
+      } else {
+        payload.createdAt = serverTimestamp();
+        await addDoc(collection(db, "cbt_questions"), payload);
+        alert("✓ Soal baru berhasil ditambahkan!");
+      }
+      document.getElementById("modalQuestionForm").style.display = "none";
+    } catch (e) {
+      alert("Gagal menyimpan soal: " + e.message);
+    }
+  };
+
+  window.deleteQuestion = async function(docId) {
+    if (confirm("Apakah Anda yakin ingin menghapus soal ini?")) {
+      try {
+        if (!docId.startsWith("default_")) {
+          await deleteDoc(doc(db, "cbt_questions", docId));
+          alert("✓ Soal berhasil dihapus!");
+        } else {
+          bankSoalBiologi = bankSoalBiologi.filter(q => q.id !== docId);
+          renderGuruTableFromMemory();
+          alert("✓ Soal lokal berhasil dihapus!");
+        }
+      } catch (e) {
+        alert("Gagal menghapus soal: " + e.message);
+      }
+    }
+  };
+
+  // 2. RENDER SOAL SISWA (A-E)
+  async function loadQuestionsForExam() {
+    try {
+      const snap = await getDocs(query(collection(db, "cbt_questions"), orderBy("createdAt", "asc")));
+      bankSoalBiologi = [];
+      snap.forEach(d => bankSoalBiologi.push({ id: d.id, ...d.data() }));
+    } catch (e) {
+      console.warn("Gagal mengambil soal dari Firestore, menggunakan soal lokal bawaan.", e);
+    }
+
+    if (bankSoalBiologi.length === 0) {
+      bankSoalBiologi = defaultQuestionsData.map((q, idx) => ({ id: "default_" + idx, ...q }));
+    }
+    return true;
+  }
+
+  function renderQuestion() {
+    const q = bankSoalBiologi[currentQuestionIndex];
+    document.getElementById("qNumber").innerText = `Soal ${currentQuestionIndex + 1} dari ${bankSoalBiologi.length}`;
+    document.getElementById("qPrompt").innerText = q.question;
+    
+    const answerArea = document.getElementById("answerArea");
+    answerArea.innerHTML = "";
+
+    const prefixes = ["A. ", "B. ", "C. ", "D. ", "E. "];
+    q.options.forEach((opt, idx) => {
+      const isChecked = userAnswers[currentQuestionIndex] === idx ? "checked" : "";
+      answerArea.innerHTML += `
+        <label class="option-item">
+          <input type="radio" name="optAnswer" value="${idx}" ${isChecked} onchange="window.selectAnswer(${idx})">
+          <span><b>${prefixes[idx]}</b>${opt}</span>
+        </label>
+      `;
+    });
+  }
+
+  window.selectAnswer = function(idx) {
+    userAnswers[currentQuestionIndex] = idx;
+  };
+
+  document.getElementById("btnNextQ").onclick = () => {
+    if (currentQuestionIndex < bankSoalBiologi.length - 1) {
+      currentQuestionIndex++;
+      renderQuestion();
+    }
+  };
+
+  document.getElementById("btnPrev").onclick = () => {
+    if (currentQuestionIndex > 0) {
+      currentQuestionIndex--;
+      renderQuestion();
+    }
+  };
+
+  document.getElementById("btnStart").onclick = async () => {
+    const nama = document.getElementById("playerName").value.trim();
+    const kelas = document.getElementById("playerClass").value;
+    if (!nama) { alert("Harap isi Nama Lengkap!"); return; }
+
+    const isReady = await loadQuestionsForExam();
+    if (!isReady) return;
+
+    window.CBT_SESSION.studentName = nama;
+    window.CBT_SESSION.studentClass = kelas;
+    window.CBT_SESSION.isExamActive = true;
+
+    document.getElementById("examPlayerTag").innerText = `${nama} (${kelas})`;
+    document.getElementById("screen-start").classList.remove("active");
+    document.getElementById("screen-exam").classList.add("active");
+    
+    renderQuestion();
+  };
+
+  // DETEKSI KECURANGAN
+  document.addEventListener("visibilitychange", async () => {
+    if (document.hidden && window.CBT_SESSION.isExamActive && !window.CBT_SESSION.isDisqualified) {
+      window.CBT_SESSION.violationsCount++;
+      const timeStr = new Date().toLocaleTimeString('id-ID');
+      const reasonStr = `Pindah tab/layar ke-${window.CBT_SESSION.violationsCount} (${timeStr})`;
+      
+      window.CBT_SESSION.violationLogs.push(reasonStr);
+
+      try {
+        await addDoc(collection(db, "cbt_violations"), {
+          sessionId: window.CBT_SESSION.sessionId,
+          name: window.CBT_SESSION.studentName || "Siswa Tanpa Nama",
+          class: window.CBT_SESSION.studentClass,
+          reason: reasonStr,
+          time: timeStr,
+          createdAt: serverTimestamp()
+        });
+      } catch (e) {
+        console.error("Gagal mengirim log pelanggaran:", e);
+      }
+
+      if (window.CBT_SESSION.violationsCount >= 3) {
+        window.CBT_SESSION.isDisqualified = true;
+        alert("🚨 Kecurangan maksimal 3x terdeteksi! Ujian dihentikan dan nilai dianggap 0.");
+        window.simpanHasilAkhirCBT(0, true);
+      } else {
+        alert(`⚠️ PERINGATAN KECURANGAN (${window.CBT_SESSION.violationsCount}/3)!\nDilarang berpindah tab saat ujian berlangsung.`);
+      }
+    }
+  });
+
+  window.simpanHasilAkhirCBT = async function(skorAkhir, isDiskualifikasi = false) {
+    window.CBT_SESSION.isExamActive = false;
+
+    const payload = {
+      sessionId: window.CBT_SESSION.sessionId,
+      id: "RES-" + Date.now(),
+      timestamp: new Date().toISOString(),
+      name: window.CBT_SESSION.studentName || "Siswa Tanpa Nama",
+      class: window.CBT_SESSION.studentClass,
+      score: Number(skorAkhir),
+      isDisqualified: Boolean(isDiskualifikasi),
+      violations: Number(window.CBT_SESSION.violationsCount),
+      logs: window.CBT_SESSION.violationLogs.slice(0, 20),
+      createdAt: serverTimestamp()
+    };
+
+    try {
+      await addDoc(collection(db, "cbt_results"), payload);
+      alert("✓ Hasil Ujian Berhasil Tersimpan!");
+      location.reload();
+    } catch (err) {
+      console.error("Gagal menyimpan hasil CBT:", err);
+      alert("Nilai Anda: " + skorAkhir + "\n(Gagal menyimpan ke server)");
+      location.reload();
+    }
+  };
+
+  document.getElementById("btnFinishExam").onclick = () => {
+    if (confirm("Apakah Anda yakin ingin menyelesaikan ujian?")) {
+      let correctCount = 0;
+      bankSoalBiologi.forEach((q, idx) => {
+        if (userAnswers[idx] === q.answer) correctCount++;
+      });
+      const finalScore = Math.round((correctCount / bankSoalBiologi.length) * 100);
+      window.simpanHasilAkhirCBT(finalScore, false);
+    }
+  };
+
+  // MODAL & AUTH GURU
+  const modalGuru = document.getElementById("modalGuruLogin");
+  document.getElementById("btnOpenGuruPanel").onclick = () => modalGuru.style.display = "flex";
+  document.getElementById("btnCloseGuruLogin").onclick = () => modalGuru.style.display = "none";
+
+  document.getElementById("btnLoginGuru").onclick = async () => {
+    const email = document.getElementById("guruEmail").value;
+    const pass = document.getElementById("guruPassword").value;
+    try {
+      await signInWithEmailAndPassword(auth, email, pass);
+      modalGuru.style.display = "none";
+    } catch (e) {
+      alert("Login Gagal: " + e.message);
+    }
+  };
+
+  document.getElementById("btnLogoutGuru").onclick = () => signOut(auth);
+  document.getElementById("btnBackFromGuru").onclick = () => {
+    document.getElementById("screen-guru-dashboard").classList.remove("active");
+    document.getElementById("screen-start").classList.add("active");
+  };
+
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+      document.getElementById("screen-guru-dashboard").classList.add("active");
+      loadQuestionsForGuru();
+      loadDashboardData();
+    }
+  });
+
+  // FILTER & RENDER TABEL NILAI
+  function filterAndRenderResults() {
+    const selectedClass = document.getElementById("filterClassSelect").value;
+    const tbody = document.getElementById("tbodyResults");
+    tbody.innerHTML = "";
+
+    const filtered = selectedClass === "ALL" 
+      ? rawResults 
+      : rawResults.filter(r => r.class === selectedClass);
+
+    if (filtered.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" style="text-align: center;">Tidak ada data hasil ujian untuk kelas ini.</td></tr>`;
+      return;
+    }
+
+    filtered.forEach(d => {
+      tbody.innerHTML += `
+        <tr>
+          <td>${d.timestamp ? new Date(d.timestamp).toLocaleTimeString('id-ID') : '-'}</td>
+          <td><b>${d.name}</b></td>
+          <td>${d.class}</td>
+          <td><b>${d.score}</b></td>
+          <td>${d.isDisqualified ? '<span class="badge-danger">DISKUALIFIKASI</span>' : '<span class="badge-success">Selesai</span>'}</td>
+          <td>${d.violations}x</td>
+          <td><small>${(d.logs || []).join("<br>")}</small></td>
+        </tr>
+      `;
+    });
+  }
+
+  document.getElementById("filterClassSelect").onchange = filterAndRenderResults;
+
+  function loadDashboardData() {
+    const qResults = query(collection(db, "cbt_results"), orderBy("createdAt", "desc"));
+    onSnapshot(qResults, (snapshot) => {
+      rawResults = [];
+      snapshot.forEach(doc => rawResults.push(doc.data()));
+      filterAndRenderResults();
+    });
+
+    const qViolations = query(collection(db, "cbt_violations"), orderBy("createdAt", "desc"));
+    onSnapshot(qViolations, (snapshot) => {
+      const tbody = document.getElementById("tbodyViolations");
+      tbody.innerHTML = "";
+      snapshot.forEach(doc => {
+        const d = doc.data();
+        tbody.innerHTML += `
+          <tr>
+            <td>${d.time || '-'}</td>
+            <td><b>${d.name}</b></td>
+            <td>${d.class}</td>
+            <td><span class="badge-danger">${d.reason}</span></td>
+          </tr>
+        `;
+      });
+    });
+  }
+
+  // 3. GENERATE & CETAK PDF REKAPITULASI NILAI
+  document.getElementById("btnPrintPdf").onclick = () => {
+    const selectedClass = document.getElementById("filterClassSelect").value;
+    const dataToPrint = selectedClass === "ALL" 
+      ? rawResults 
+      : rawResults.filter(r => r.class === selectedClass);
+
+    if (dataToPrint.length === 0) {
+      alert("Tidak ada data untuk dicetak!");
+      return;
+    }
+
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // Kop Surat Laporan
+    doc.setFont("Helvetica", "bold");
+    doc.setFontSize(14);
+    doc.text("SMA NEGERI 1 JAWILAN", 105, 15, { align: "center" });
+    
+    doc.setFontSize(12);
+    doc.setFont("Helvetica", "normal");
+    doc.text("REKAPITULASI NILAI ASESMEN TENGAH SEMESTER (ATS) BIOLOGI", 105, 22, { align: "center" });
+    doc.text(`Kelas: ${selectedClass === "ALL" ? "Semua Kelas" : selectedClass}`, 105, 28, { align: "center" });
+
+    doc.setLineWidth(0.5);
+    doc.line(14, 32, 196, 32);
+
+    // Persiapan Baris Tabel
+    const tableBody = dataToPrint.map((row, index) => [
+      index + 1,
+      row.name,
+      row.class,
+      row.score,
+      row.isDisqualified ? "DISKUALIFIKASI" : "Selesai",
+      `${row.violations} kali`
+    ]);
+
+    // Render Tabel menggunakan jsPDF-AutoTable
+    doc.autoTable({
+      startY: 36,
+      head: [["No", "Nama Peserta", "Kelas", "Nilai", "Status", "Pelanggaran"]],
+      body: tableBody,
+      theme: "grid",
+      headStyles: { fillColor: [15, 56, 117], textColor: [255, 255, 255], fontStyle: "bold" },
+      columnStyles: {
+        0: { halign: "center", cellWidth: 12 },
+        1: { cellWidth: 70 },
+        2: { halign: "center", cellWidth: 25 },
+        3: { halign: "center", cellWidth: 20 },
+        4: { halign: "center", cellWidth: 35 },
+        5: { halign: "center", cellWidth: 25 }
+      }
+    });
+
+    // Ringkasan & Tanda Tangan
+    const finalY = doc.lastAutoTable.finalY + 15;
+    const dateStr = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+
+    doc.setFontSize(10);
+    doc.text(`Jawilan, ${dateStr}`, 140, finalY);
+    doc.text("Guru Mata Pelajaran Biologi,", 140, finalY + 6);
+    doc.text("_________________________", 140, finalY + 30);
+
+    // Download File PDF
+    const fileName = `Rekap_Nilai_ATS_Biologi_${selectedClass.replace('-', '_')}.pdf`;
+    doc.save(fileName);
+  };
+</script>
+
+</body>
+</html>
